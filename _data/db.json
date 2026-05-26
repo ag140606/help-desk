@@ -1,0 +1,74 @@
+{
+    "tickets": [
+        {
+            "id": "HD-1001",
+            "title": "Laptop Not Powering On",
+            "body": "User reports that the company-issued Dell laptop does not power on even after charging for 2 hours. Possible hardware issue with battery or motherboard.",
+            "priority": "High",
+            "user_email": "john.carter@example.com"
+        },
+        {
+            "id": "HD-1002",
+            "title": "Email Client Crashing Frequently",
+            "body": "Outlook crashes whenever the user attempts to open attachments larger than 5MB. Issue started after recent software update.",
+            "priority": "Medium",
+            "user_email": "sarah.mitchell@example.com"
+        },
+        {
+            "id": "HD-1003",
+            "title": "Printer Not Responding",
+            "body": "Office printer on the 3rd floor is showing offline status and not responding to print requests from multiple users.",
+            "priority": "Low",
+            "user_email": "michael.lee@example.com"
+        },
+        {
+            "id": "HD-1004",
+            "title": "Blue Screen Error on Startup",
+            "body": "Windows workstation displays a blue screen with error code MEMORY_MANAGEMENT during startup.",
+            "priority": "Critical",
+            "user_email": "emma.wilson@example.com"
+        },
+        {
+            "id": "HD-1005",
+            "title": "VPN Connection Failure",
+            "body": "Remote employee unable to connect to company VPN after password reset. Authentication keeps failing.",
+            "priority": "High",
+            "user_email": "david.khan@example.com"
+        },
+        {
+            "id": "HD-1006",
+            "title": "Software License Activation Issue",
+            "body": "Adobe Creative Cloud license cannot be activated on the new workstation despite valid subscription.",
+            "priority": "Medium",
+            "user_email": "olivia.brown@example.com"
+        },
+        {
+            "id": "HD-1007",
+            "title": "Keyboard Keys Not Working",
+            "body": "Several keys on the keyboard are unresponsive, specifically the spacebar and enter key.",
+            "priority": "Medium",
+            "user_email": "james.anderson@example.com"
+        },
+        {
+            "id": "HD-1008",
+            "title": "Slow System Performance",
+            "body": "Desktop computer experiencing extremely slow performance when opening multiple applications simultaneously.",
+            "priority": "Low",
+            "user_email": "nina.patel@example.com"
+        },
+        {
+            "id": "HD-1009",
+            "title": "Unable to Install Security Update",
+            "body": "Windows security patch installation fails with error code 0x80070005 on multiple attempts.",
+            "priority": "High",
+            "user_email": "alex.turner@example.com"
+        },
+        {
+            "id": "HD-1010",
+            "title": "Monitor Flickering Issue",
+            "body": "External monitor connected via HDMI flickers intermittently during use.",
+            "priority": "Low",
+            "user_email": "grace.evans@example.com"
+        }
+    ]
+}
