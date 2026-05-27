@@ -3,7 +3,7 @@ import { Jost } from "next/font/google";
 import "./globals.css";
 
 //Components
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar";       //Self-closing tag used to display Navbar in every page
 
 const jost = Jost({ subsets: ["latin"] });    //Instance of font
 
@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
     //'nav' tag under body, before '{children}'
     <html lang="en">
       <body className={jost.className}>
-        <Navbar />
+        <Navbar />         
         {children}
       </body>
     </html>
