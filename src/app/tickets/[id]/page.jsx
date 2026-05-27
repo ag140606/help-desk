@@ -1,17 +1,19 @@
 import React from 'react'
+import { notFound } from 'next/navigation';
+
 
 async function getTicket(id) {
     const res = await fetch('http://localhost:4000/tickets/' + id, {
-        next: {
-            revalidate: 60          //Check this line
-        }
-    })
+        next: { revalidate: 60 }        //Check this line
+    });
+    if (!res.ok) return null; 
     return res.json();
 }
 
 export default async function TicketDetails( { params } ) {
   const { id } = await params;
   const ticket = await getTicket(id)
+  if (!ticket) notFound(); 
 
   return (
     <main>
