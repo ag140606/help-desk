@@ -9,7 +9,7 @@ export default function Navbar() {
         <Image
           src = { Logo }
           alt = "MyHelpdesk Logo"
-          width = { 40 }
+          width = { 30 }
           quality={ 100 }
           placeholder='blur' />
         <h1>MyHelpdesk</h1>
