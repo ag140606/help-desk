@@ -74,8 +74,7 @@ export default function CreateForm() {
       </label>
       <button 
         className="btn-primary" 
-        disabled={loading}
-      >
+        disabled={loading}>
       {loading && <span>Adding...</span>}
       {!loading && <span>Add Ticket</span>}
     </button>

@@ -190,3 +190,19 @@ form button {
   right: 0;
   border-top-left-radius: 0.375rem;
 }
+
+.addTicket {
+  color: #63768d;
+  background-color: #8ac6d0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.addTicket:hover {
+  background-color: #7ab8c3;
+  color: #fff;
+}

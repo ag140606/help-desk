@@ -13,8 +13,12 @@ export default function Navbar() {
           quality={ 100 }
           placeholder='blur' />
         <h1>MyHelpdesk</h1>
-        <Link href="/">Dashboard</Link>
-        <Link href="/tickets">Tickets</Link>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1.25rem'}}>
+          <Link href="/">Dashboard</Link>
+          <Link href="/tickets">Tickets</Link>
+          <Link href="/tickets/create" className='addTicket'>Add Ticket</Link>
+        </div>
+        
     </nav>
   )
 }
