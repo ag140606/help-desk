@@ -12,6 +12,10 @@ h2 {
   font-size: 1.125rem;
 }
 
+a {
+  text-decoration: none;
+}
+
 main {
   max-width: 64rem;
   margin-top: 3rem;
@@ -29,7 +33,7 @@ main > h2 {
 }
 
 p > a {
-  color: #554971;
+  color: #63768D;
 }
 
 /* nav styles */

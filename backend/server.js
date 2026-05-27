@@ -18,3 +18,9 @@ app.get('/tickets', (req, res) => {
 });
 
 app.listen(4000, () => console.log('Backend running on http://localhost:4000'));
+
+app.get('/tickets/:id', (req, res) => {
+  const ticket = tickets.find(t => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  res.json(ticket);
+});
