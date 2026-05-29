@@ -1,15 +1,16 @@
 import React from 'react'
 import Link from 'next/link'
+import axios from 'axios'
 
 //For reusing data
 
-//Function to fetch data; fetch logic used here
+//Function to fetch data; axios logic used here
 async function getTickets() {
-    const res = await fetch('http://localhost:4000/tickets')
-    return res.json();
+    const res = await axios.get('http://localhost:4000/tickets')
+    return res.data;
 }
 
-//Declare as async function to use as server components & use fetch API directly
+//Declare as async function to use as server components; use axios directly
 export default async function TicketList() {
     //Return data
   const tickets = await getTickets();
