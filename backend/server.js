@@ -29,18 +29,26 @@ app.get('/tickets/:id', (req, res) => {
 const path = require('path');
 const dbPath = path.join(__dirname, '../_data/db.json');
 
-app.post('/tickets', (req, res) => {
-  const { title, body, priority, user_email } = req.body;
-  //Check entered fields
-  if (!title || !body || !priority || !user_email) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-  const newTicket = {
-    id: 'HD-' + (tickets.length + 1001), title, body, priority, user_email
-  }
-  tickets.push(newTicket);
 
-  // Writing back to db.json
-  fs.writeFileSync(dbPath, JSON.stringify({ tickets }, null, 2));
-  res.status(201).json(newTicket);          //Check this line
+//Try-catch
+app.post('/tickets', (req, res) => {
+  try {
+    const { title, body, priority, user_email } = req.body;
+    //Check entered fields
+    if (!title || !body || !priority || !user_email) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    const newTicket = {
+      id: 'HD-' + (tickets.length + 1001), title, body, priority, user_email
+    }
+    tickets.push(newTicket);
+    // Writing back to db.json
+    fs.writeFileSync(dbPath, JSON.stringify({ tickets }, null, 2));
+    res.status(201).json(newTicket);          //Check this line
+  } catch (error) {
+      res.status(500).json({ error });
+  }
+  
+
+  
 });
