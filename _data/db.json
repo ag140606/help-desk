@@ -1,5 +1,4 @@
-{
-  "tickets": [
+[
     {
       "id": "HD-1001",
       "title": "Laptop Not Powering On",
@@ -99,4 +98,3 @@
       "user_email": "test_mail@gmail.com"
     }
   ]
-}

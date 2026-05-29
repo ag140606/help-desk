@@ -1,54 +1,61 @@
 //Import frameworks
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
 //CORS (Cross-Origin Resource Sharing) is a security mechanism built into web browsers. 
 //It allows a server to explicitly state which external websites (domains) are permitted to load or request 
 //its data, ensuring that malicious sites cannot secretly steal a user's sensitive information. 
 //Required since frontend and backend are on different ports. 
-const fs = require('fs');       //For file handling
+const { MongoClient } = require('mongodb');           //MongoDB connection
 
-const app = express();              //Create Express instance
-app.use(cors());                    //Enable CORS
-app.use(express.json());            //JSON is parsed and ready to use
+const app = express();                          //Create Express instance
+app.use(cors());                                //Enable CORS
+app.use(express.json());                        //JSON is parsed and ready to use
 
-const { tickets } = JSON.parse(fs.readFileSync('../_data/db.json', 'utf-8'));
+const uri = 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
+let tickets;
 
-app.get('/tickets', (req, res) => { 
-    res.json(tickets); 
+async function connectDB() {
+  await client.connect();
+  const db = client.db('help-desk');
+  tickets = db.collection('tickets');
+  console.log('Connected to MongoDB');
+}
+
+connectDB();
+
+app.get('/tickets', async (req, res) => {
+  try {
+    const all = await tickets.find().toArray();
+    res.json(all);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 });
 
-app.listen(4000, () => console.log('Backend running on http://localhost:4000'));
-
-app.get('/tickets/:id', (req, res) => {
-  const ticket = tickets.find(t => t.id === req.params.id);
-  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-  res.json(ticket);
+app.get('/tickets/:id', async (req, res) => {
+  try {
+    const ticket = await tickets.findOne({ id: req.params.id });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 });
 
-//For adding new tickets
-const path = require('path');
-const dbPath = path.join(__dirname, '../_data/db.json');
-
-
-//Try-catch
-app.post('/tickets', (req, res) => {
+app.post('/tickets', async (req, res) => {
   try {
     const { title, body, priority, user_email } = req.body;
-    //Check entered fields
     if (!title || !body || !priority || !user_email) {
       return res.status(400).json({ error: 'All fields are required' });
     }
-    const newTicket = {
-      id: 'HD-' + (tickets.length + 1001), title, body, priority, user_email
-    }
-    tickets.push(newTicket);
-    // Writing back to db.json
-    fs.writeFileSync(dbPath, JSON.stringify({ tickets }, null, 2));
-    res.status(201).json(newTicket);          //Check this line
+    const count = await tickets.countDocuments();
+    const newTicket = { id: 'HD-' + (count + 1001), title, body, priority, user_email };
+    await tickets.insertOne(newTicket);
+    res.status(201).json(newTicket);
   } catch (error) {
-      res.status(500).json({ error });
+    res.status(500).json({ error });
   }
-  
-
-  
 });
+
+app.listen(4000, () => console.log('Backend running on http://localhost:4000'));
