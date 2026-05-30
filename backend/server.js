@@ -5,7 +5,8 @@ const cors = require('cors');
 //It allows a server to explicitly state which external websites (domains) are permitted to load or request 
 //its data, ensuring that malicious sites cannot secretly steal a user's sensitive information. 
 //Required since frontend and backend are on different ports. 
-const { MongoClient } = require('mongodb');           //MongoDB connection
+const { MongoClient, ObjectId } = require('mongodb');           //MongoDB connection
+const { dbConfig, validateTicket, buildTicketDocument } = require('./data/schema');
 
 const app = express();                          //Create Express instance
 app.use(cors());                                //Enable CORS
@@ -17,8 +18,8 @@ let tickets;
 
 async function connectDB() {
   await client.connect();
-  const db = client.db('help-desk');
-  tickets = db.collection('tickets');
+  const db = client.db(dbConfig.name);
+  tickets = db.collection(dbConfig.collections.tickets);
   console.log('Connected to MongoDB');
 }
 
@@ -35,7 +36,7 @@ app.get('/tickets', async (req, res) => {
 
 app.get('/tickets/:id', async (req, res) => {
   try {
-    const ticket = await tickets.findOne({ id: req.params.id });
+    const ticket = await tickets.findOne({ _id: new ObjectId(req.params.id) });
     if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
     res.json(ticket);
   } catch (error) {
@@ -45,14 +46,25 @@ app.get('/tickets/:id', async (req, res) => {
 
 app.post('/tickets', async (req, res) => {
   try {
-    const { title, body, priority, user_email } = req.body;
-    if (!title || !body || !priority || !user_email) {
-      return res.status(400).json({ error: 'All fields are required' });
+    const validation = validateTicket(req.body);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors.join(', ') });
     }
-    const count = await tickets.countDocuments();
-    const newTicket = { id: 'HD-' + (count + 1001), title, body, priority, user_email };
-    await tickets.insertOne(newTicket);
-    res.status(201).json(newTicket);
+    const newTicket = buildTicketDocument(req.body);
+    const result = await tickets.insertOne(newTicket);
+    res.status(201).json({ _id: result.insertedId, ...newTicket });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
+
+app.delete('/tickets/:id', async (req, res) => {
+  try {
+    const result = await tickets.deleteOne({ _id: new ObjectId(req.params.id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    res.status(200).json({ message: 'Ticket deleted' });
   } catch (error) {
     res.status(500).json({ error });
   }

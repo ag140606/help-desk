@@ -1,19 +1,24 @@
 import React from 'react'
 import { notFound } from 'next/navigation';
+import DeleteButton from './DeleteButton';
+import axios from 'axios'
 
 
 async function getTicket(id) {
-    const res = await fetch('http://localhost:4000/tickets/' + id, {
-        next: { revalidate: 60 }        //Check this line
-    });
-    if (!res.ok) return null; 
-    return res.json();
+    try {
+        const res = await axios.get('http://localhost:4000/tickets/' + id)
+        return res.data;
+    } catch (error) {
+        return null;
+    }
 }
 
-export default async function TicketDetails( { params } ) {
+export default async function TicketDetails({ params }) {
   const { id } = await params;
   const ticket = await getTicket(id)
   if (!ticket) notFound(); 
+
+
 
   return (
     <main>
@@ -24,8 +29,9 @@ export default async function TicketDetails( { params } ) {
             <h3>{ticket.title}</h3>
             <small><b>Created by: </b>{ticket.user_email}</small>
             <p>{ticket.body}</p>
-            <div className = {`pill ${ticket.priority}`}> {ticket.priority} priority</div>
+            <div className={`pill ${ticket.priority}`}>{ticket.priority} priority</div>
         </div>
+        <DeleteButton id={id} />
     </main>
   )
 }

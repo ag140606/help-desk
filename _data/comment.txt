@@ -1,3 +1,0 @@
-Mock database in db.json
-
-Run 'json-server --watch --port 4000 ./_data/db.json' to get endpoints
