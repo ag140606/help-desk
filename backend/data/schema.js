@@ -1,56 +1,52 @@
+const { Schema, model } = require('mongoose');
+
 const PRIORITIES = ['low', 'medium', 'high'];
 
-const ticketFields = {
-  title: { type: 'string', required: true },
-  body: { type: 'string', required: true },
-  priority: { type: 'string', required: true, enum: PRIORITIES },
-  user_email: { type: 'string', required: true },
-};
-
-const dbConfig = {
-  name: 'help-desk',
-  collections: {
-    tickets: 'tickets',
+const ticketSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
   },
-};
+  body: {
+    type: String,
+    required: true,
+  },
+  priority: {
+    type: String,
+    required: true,
+    enum: PRIORITIES,
+  },
+  user_email: {
+    type: String,
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
+
+const Ticket = model('Ticket', ticketSchema);
 
 function validateTicket(data) {
-  const errors = [];
+  const ticket = new Ticket(data);
+  const validationError = ticket.validateSync();
 
-  for (const [field, rules] of Object.entries(ticketFields)) {
-    const value = data[field];
+  if (!validationError) return { valid: true };
 
-    if (rules.required && (value === undefined || value === null || value === '')) {
-      errors.push(`${field} is required`);
-      continue;
-    }
-
-    if (value !== undefined && value !== null && value !== '') {
-      if (rules.type === 'string' && typeof value !== 'string') {
-        errors.push(`${field} must be a string`);
-      }
-      if (rules.enum && !rules.enum.includes(value)) {
-        errors.push(`${field} must be one of: ${rules.enum.join(', ')}`);
-      }
-    }
-  }
-
-  return errors.length ? { valid: false, errors } : { valid: true };
+  const errors = Object.values(validationError.errors).map((e) => e.message);
+  return { valid: false, errors };
 }
 
 function buildTicketDocument(data) {
-  return {
+  return new Ticket({
     title: data.title,
     body: data.body,
     priority: data.priority,
     user_email: data.user_email,
-  };
+  });
 }
 
 module.exports = {
-  PRIORITIES,
-  ticketFields,
-  dbConfig,
+  Ticket,
   validateTicket,
   buildTicketDocument,
 };
