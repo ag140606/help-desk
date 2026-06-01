@@ -7,11 +7,13 @@ export default function Navbar() {
   return (
     <nav>
         <Image
-          src = { Logo }
-          alt = "MyHelpdesk Logo"
-          width = { 30 }
-          quality={ 100 }
-          placeholder='blur' />
+          src={Logo}
+          alt="MyHelpdesk Logo"
+          width={40}
+          height={40}
+          priority
+          className="navbar-logo"
+        />
         <h1>MyHelpdesk</h1>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1.25rem'}}>
           <Link href="/">Dashboard</Link>

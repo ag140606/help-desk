@@ -37,6 +37,10 @@ p > a {
 }
 
 /* nav styles */
+nav .navbar-logo {
+  flex-shrink: 0;
+}
+
 nav {
   padding-bottom: 1rem;
   border-bottom: 2px solid #e5e7eb;

@@ -1,16 +1,16 @@
 import React from 'react'
 import Link from 'next/link'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 //For reusing data
 
 //Function to fetch data; axios logic used here
 async function getTickets() {
-    const res = await axios.get('http://localhost:4000/tickets')
+    const res = await axios.get('/tickets')
     return res.data;
 }
 
-//Declare as async function to use as server components; use axios directly
+//Declare as async function to use as server components
 export default async function TicketList() {
     //Return data
   const tickets = await getTickets();

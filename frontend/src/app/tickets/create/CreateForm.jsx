@@ -1,6 +1,6 @@
 "use client"            //Use as client component
 import React from 'react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 import { useRouter } from 'next/navigation'             //To re-route after submission
 import { useState } from 'react'                        //For default values
@@ -20,9 +20,7 @@ export default function CreateForm() {
 
     const newTicket = { title, body, priority, user_email: email }
 
-    const res = await axios.post('http://localhost:4000/tickets', newTicket, {
-      headers: { "Content-Type": "application/json" }
-    })
+    const res = await axios.post('/tickets', newTicket)
 
     if (res.status === 201) {                       //Check this line
       router.refresh()

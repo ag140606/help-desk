@@ -1,12 +1,12 @@
 import React from 'react'
 import { notFound } from 'next/navigation';
 import DeleteButton from './DeleteButton';
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 
 async function getTicket(id) {
     try {
-        const res = await axios.get('http://localhost:4000/tickets/' + id)
+        const res = await axios.get('/tickets/' + id)
         return res.data;
     } catch (error) {
         return null;
