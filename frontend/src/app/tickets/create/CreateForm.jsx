@@ -11,23 +11,31 @@ export default function CreateForm() {
   const[title, setTitle] = useState('');
   const[body, setBody] = useState('');
   const[priority, setPriority] = useState('low');
-  const [email, setEmail] = useState('');
   const[loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e)  => {
     e.preventDefault();
+    setError('');
     setLoading(true);
 
-    const newTicket = { title, body, priority, user_email: email }
+    const newTicket = { title, body, priority }
 
-    const res = await axios.post('/tickets', newTicket)
-
-    if (res.status === 201) {                       //Check this line
-      router.refresh()
-      router.push('/tickets')
+    try {
+      const res = await axios.post('/tickets', newTicket)
+      if (res.status === 201) {
+        router.refresh()
+        router.push('/tickets')
+      }
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        router.push('/login')
+      } else {
+        setError(err.response?.data?.error || 'Unable to create ticket')
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }
 
   return (
@@ -50,15 +58,6 @@ export default function CreateForm() {
         />
       </label>
       <label>
-        <span>Email:</span>                      
-        <input
-          required
-          type="email"
-          onChange={(e) => setEmail(e.target.value)}
-          value={email}
-        />
-      </label>
-      <label>
         <span>Priority:</span>
         <select 
           onChange={(e) => setPriority(e.target.value)}
@@ -69,6 +68,7 @@ export default function CreateForm() {
           <option value="high">High Priority</option>
         </select>
       </label>
+      {error && <p className='text-red-500'>{error}</p>}
       <button 
         className="btn-primary" 
         disabled={loading}>

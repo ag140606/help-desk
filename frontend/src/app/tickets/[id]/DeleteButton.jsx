@@ -9,10 +9,13 @@ export default function DeleteButton({ id }) {
 
   const deleteTicket = async () => {
     try {
-      const res = await axios.delete('/tickets/' + id)
-      router.refresh()
+      await axios.delete('/tickets/' + id)
       router.push('/tickets')
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        router.push('/login')
+        return
+      }
       console.log('Delete error:', error)
     }
   }

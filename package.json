@@ -6,5 +6,8 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "build:frontend": "npm run build --prefix frontend"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

@@ -1,21 +1,44 @@
-import React from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import axios from '@/lib/axios'
+import { useRouter } from 'next/navigation'
 
-//For reusing data
+export default function TicketList() {
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const router = useRouter()
 
-//Function to fetch data; axios logic used here
-async function getTickets() {
-    const res = await axios.get('/tickets')
-    return res.data;
-}
+  useEffect(() => {
+    const loadTickets = async () => {
+      try {
+        const res = await axios.get('/tickets')
+        setTickets(res.data)
+      } catch (err) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          router.push('/login')
+          return
+        }
+        setError('Unable to load tickets')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-//Declare as async function to use as server components
-export default async function TicketList() {
-    //Return data
-  const tickets = await getTickets();
+    loadTickets()
+  }, [router])
+
+  if (loading) {
+    return <p>Loading tickets...</p>
+  }
+
+  if (error) {
+    return <p className='text-red-500'>{error}</p>
+  }
+
   return (
-    //Empty tag for fragments
     <>
         {tickets.map((ticket) => (
             <div key = {ticket._id} className='card my-5'>
