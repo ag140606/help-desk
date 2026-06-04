@@ -77,8 +77,6 @@ app.post('/auth/signup', async (req, res) => {
 
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
-    user.refreshToken = refreshToken;
-    await user.save();
 
     return res.status(201).json({
       message: 'User created successfully',
@@ -116,8 +114,6 @@ app.post('/auth/login', async (req, res) => {
 
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
-    user.refreshToken = refreshToken;
-    await user.save();
 
     return res.json({
       accessToken,
@@ -142,14 +138,14 @@ app.post('/auth/refresh', async (req, res) => {
 
     const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
     const user = await User.findById(payload.userId);
-    if (!user || user.refreshToken !== refreshToken) {
+    if (!user) {
       return res.status(403).json({ error: 'Invalid refresh token' });
     }
 
     const newAccessToken = createAccessToken(user);
     const newRefreshToken = createRefreshToken(user);
-    user.refreshToken = newRefreshToken;
-    await user.save();
+
+    console.log(`[Auth] Refresh token used for user: ${payload.userId}`);
 
     return res.json({
       accessToken: newAccessToken,
@@ -162,14 +158,6 @@ app.post('/auth/refresh', async (req, res) => {
 
 app.post('/auth/logout', async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (refreshToken) {
-      const user = await User.findOne({ refreshToken });
-      if (user) {
-        user.refreshToken = null;
-        await user.save();
-      }
-    }
     return res.status(204).send();
   } catch (error) {
     return res.status(500).json({ error: 'Unable to logout' });
