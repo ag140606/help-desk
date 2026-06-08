@@ -11,7 +11,9 @@ const {
   buildTicketDocument,
 } = require('./data/schema');
 const { User } = require('./data/userSchema');
+const { Admin } = require('./data/adminSchema');
 const { authenticateToken } = require('./middleware/auth');
+const { authenticateAdmin } = require('./middleware/adminAuth');
 const { authorizeTicketOwner } = require('./middleware/ticketAuthorization');
 
 const app = express();
@@ -49,6 +51,46 @@ function createRefreshToken(user) {
     { expiresIn: REFRESH_TOKEN_EXPIRY }
   );
 }
+
+function createAdminAccessToken(admin) {
+  return jwt.sign(
+    {
+      adminId: admin._id.toString(),
+      email: admin.email,
+      name: admin.name,
+      role: 'admin',
+    },
+    ACCESS_TOKEN_SECRET,
+    { expiresIn: ACCESS_TOKEN_EXPIRY }
+  );
+}
+
+function createAdminRefreshToken(admin) {
+  return jwt.sign(
+    { adminId: admin._id.toString(), role: 'admin' },
+    REFRESH_TOKEN_SECRET,
+    { expiresIn: REFRESH_TOKEN_EXPIRY }
+  );
+}
+
+async function seedDefaultAdmin() {
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@helpdesk.com').trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123456';
+  const existingAdmin = await Admin.findOne({ email: adminEmail });
+  if (existingAdmin) return;
+
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+  await Admin.create({
+    name: 'Admin',
+    email: adminEmail,
+    passwordHash,
+  });
+  console.log(`Default admin created: ${adminEmail}`);
+}
+
+mongoose.connection.once('open', () => {
+  seedDefaultAdmin().catch((err) => console.error('Admin seed error:', err));
+});
 
 app.post('/auth/signup', async (req, res) => {
   try {
@@ -161,6 +203,154 @@ app.post('/auth/logout', async (req, res) => {
     return res.status(204).send();
   } catch (error) {
     return res.status(500).json({ error: 'Unable to logout' });
+  }
+});
+
+app.post('/admin/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await Admin.findOne({ email: normalizedEmail });
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
+    const accessToken = createAdminAccessToken(admin);
+    const refreshToken = createAdminRefreshToken(admin);
+
+    return res.json({
+      accessToken,
+      refreshToken,
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Unable to login as admin' });
+  }
+});
+
+app.post('/admin/auth/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'Refresh token is required' });
+    }
+
+    const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+    if (payload.role !== 'admin') {
+      return res.status(403).json({ error: 'Invalid admin refresh token' });
+    }
+
+    const admin = await Admin.findById(payload.adminId);
+    if (!admin) {
+      return res.status(403).json({ error: 'Invalid admin refresh token' });
+    }
+
+    return res.json({
+      accessToken: createAdminAccessToken(admin),
+      refreshToken: createAdminRefreshToken(admin),
+    });
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid admin refresh token' });
+  }
+});
+
+app.post('/admin/auth/logout', async (req, res) => {
+  try {
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ error: 'Unable to logout' });
+  }
+});
+
+app.get('/admin/stats', authenticateAdmin, async (req, res) => {
+  try {
+    const [userCount, ticketCount] = await Promise.all([
+      User.countDocuments(),
+      Ticket.countDocuments(),
+    ]);
+    res.json({ userCount, ticketCount });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load stats' });
+  }
+});
+
+app.get('/admin/users', authenticateAdmin, async (req, res) => {
+  try {
+    const users = await User.find().select('name email createdAt').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load users' });
+  }
+});
+
+app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name email');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const tickets = await Ticket.find({ user_email: user.email }).sort({ _id: -1 });
+    res.json({ user, tickets });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load user tickets' });
+  }
+});
+
+app.put('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    const { title, body, priority } = req.body;
+    const payload = {
+      title: title ?? ticket.title,
+      body: body ?? ticket.body,
+      priority: priority ?? ticket.priority,
+      user_email: ticket.user_email,
+    };
+
+    const validation = validateTicket(payload);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors.join(', ') });
+    }
+
+    ticket.title = payload.title;
+    ticket.body = payload.body;
+    ticket.priority = payload.priority;
+    await ticket.save();
+
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to update ticket' });
+  }
+});
+
+app.delete('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const ticket = await Ticket.findByIdAndDelete(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    res.status(200).json({ message: 'Ticket deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to delete ticket' });
   }
 });
 
