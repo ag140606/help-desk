@@ -48,15 +48,18 @@ export default function LoginPage() {
         </label>
 
         {error && <p className="text-red-500">{error}</p>}
-
+        <center>
         <button className="btn-primary" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
+        </center>
       </form>
 
+      <center>
       <p style={{ marginTop: '1rem' }}>
         New here? <Link href="/signup">Create an account</Link>
       </p>
+      </center>
     </main>
   )
 }

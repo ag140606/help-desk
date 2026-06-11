@@ -54,15 +54,18 @@ export default function SignupPage() {
         </label>
 
         {error && <p className="text-red-500">{error}</p>}
-
+        <center>
         <button className="btn-primary" disabled={loading}>
           {loading ? 'Creating account...' : 'Create account'}
         </button>
+        </center>
       </form>
 
+      <center>
       <p style={{ marginTop: '1rem' }}>
         Already registered? <Link href="/login">Login</Link>
       </p>
+      </center>
     </main>
   )
 }

@@ -4,10 +4,10 @@ import Link from "next/link"
 export default function Home() {
   return (
     <main>
-      <h2>Dashboard</h2>
+      <h1>Dashboard</h1>
       <p>Welcome to the support center. 
         Browse open tickets, submit new requests, or check on the status of your recent issues — all in one place.</p>
-      
+      <br />
       <div className="flex justify-center-safe">
         <Link href="/tickets">
           <button className="btn-primary">View Tickets</button>
@@ -15,7 +15,7 @@ export default function Home() {
       </div>
 
 
-      <h2>Updates</h2>
+      <h1>Updates</h1>
 
       <div className="card">
         <h3>Scheduled Maintenance – June 3, 2026</h3>
