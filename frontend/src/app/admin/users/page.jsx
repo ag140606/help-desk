@@ -36,6 +36,21 @@ export default function AdminUsersPage() {
     loadUsers();
   }, [router]);
 
+  const handleDeleteUser = async (userId, e) => {
+    e.preventDefault();
+    if (!confirm('Are you sure you want to delete this user and all their tickets?')) return;
+    try {
+      await adminAxios.delete(`/admin/users/${userId}`);
+      setUsers(users.filter(u => u._id !== userId));
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        router.push('/admin/login');
+      } else {
+        alert('Failed to delete user');
+      }
+    }
+  };
+
   if (loading) {
     return <main><p>Loading users...</p></main>;
   }
@@ -50,11 +65,17 @@ export default function AdminUsersPage() {
       <p>Select a user to view and manage their open tickets.</p>
 
       {users.map((user) => (
-        <div key={user._id} className="card my-5">
-          <Link href={`/admin/users/${user._id}`}>
+        <div key={user._id} className="card my-5 flex justify-between items-center relative">
+          <Link href={`/admin/users/${user._id}`} className="flex-1">
             <h3>{user.name}</h3>
             <p>{user.email}</p>
           </Link>
+          <button 
+            onClick={(e) => handleDeleteUser(user._id, e)}
+            className="btn-danger ml-4"
+          >
+            Delete
+          </button>
         </div>
       ))}
 

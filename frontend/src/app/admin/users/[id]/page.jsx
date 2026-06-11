@@ -54,7 +54,7 @@ export default function AdminUserTicketsPage() {
     return (
       <main>
         <p className="text-red-500">{error}</p>
-        <Link href="/admin/users">Back to Users</Link>
+        <button className="btn-primary" onClick={() => router.push('/admin/users')}>Back to Users</button>
       </main>
     );
   }
@@ -65,9 +65,6 @@ export default function AdminUserTicketsPage() {
         <h2>{user?.name}&apos;s Open Tickets</h2>
       </nav>
       <p>{user?.email}</p>
-      <p>
-        <Link href="/admin/users">Back to Users</Link>
-      </p>
 
       {tickets.map((ticket) => (
         <AdminTicketCard
@@ -84,9 +81,19 @@ export default function AdminUserTicketsPage() {
         />
       ))}
 
+      <br />
+
       {tickets.length === 0 && (
         <p className="text-center">This user has no open tickets.</p>
       )}
+
+      <br />
+
+      <center>
+      <p>
+        <button className="btn-primary" onClick={() => router.push('/admin/users')}>Back to Users</button>
+      </p>
+      </center>
     </main>
   );
 }
