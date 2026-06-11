@@ -69,12 +69,14 @@ export default function CreateForm() {
         </select>
       </label>
       {error && <p className='text-red-500'>{error}</p>}
+      <center>
       <button 
         className="btn-primary" 
         disabled={loading}>
       {loading && <span>Adding...</span>}
       {!loading && <span>Add Ticket</span>}
     </button>
+    </center>
     </form>
 )
 }

@@ -54,9 +54,11 @@ export default function AdminLoginPage() {
         </button>
       </form>
 
+      <center>
       <p style={{ marginTop: '1rem' }}>
         User login? <Link href="/login">Go to user login</Link>
       </p>
+      </center>
     </main>
   );
 }
