@@ -1,8 +1,8 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { LogOut, User as UserIcon } from 'lucide-react'
 import axios from '@/lib/axios'
 import {
   clearAuthSession,
@@ -13,9 +13,12 @@ import {
 import Logo from './logo.png'
 
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(getAccessToken()))
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    setIsLoggedIn(Boolean(getAccessToken()))
     const syncAuthState = () => setIsLoggedIn(Boolean(getAccessToken()))
     const authEvent = getAuthChangeEventName()
 
@@ -32,7 +35,7 @@ export default function Navbar() {
     try {
       await axios.post('/auth/logout', { refreshToken: getRefreshToken() })
     } catch (_) {
-      // No-op: we still clear local session.
+      // No-op
     } finally {
       clearAuthSession()
       setIsLoggedIn(false)
@@ -40,28 +43,43 @@ export default function Navbar() {
     }
   }
 
+  if (!mounted) return <nav className="h-20 bg-card border-b border-border m-0 max-w-none"></nav>
+
   return (
-    <nav>
+    <nav className="h-20 bg-card border-b border-border flex items-center justify-between px-8 shadow-sm m-0 max-w-none transition-colors duration-200">
+      <div className="flex items-center gap-4">
         <Image
           src={Logo}
           alt="MyHelpdesk Logo"
           width={40}
           height={40}
           priority
-          className="navbar-logo"
+          className="rounded-lg shadow-sm"
         />
-        <h1>MyHelpdesk</h1>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1.25rem'}}>
-          <Link href="/">Dashboard</Link>
-          {isLoggedIn && <Link href="/tickets">Tickets</Link>}
-          {isLoggedIn && <Link href="/tickets/create" className='addTicket'>Add Ticket</Link>}
-          {!isLoggedIn && <Link href="/login">Login</Link>}
-          {!isLoggedIn && <Link href="/signup">Sign Up</Link>}
-          {isLoggedIn && (
-            <button className="btn-secondary" onClick={handleLogout}>Logout</button>
-          )}
-        </div>
-        
+        <Link href="/"><h1 className="text-xl font-extrabold text-primary tracking-tight m-0">MyHelpdesk</h1></Link>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        {isLoggedIn ? (
+          <>
+            <Link href="/tickets/create" className="btn-primary py-2 px-4 !m-0 !w-auto !text-sm">
+              + New Ticket
+            </Link>
+            <div className="h-8 w-px bg-border mx-2"></div>
+            <Link href="/profile" className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:ring-2 hover:ring-primary transition-all">
+              <UserIcon size={20} />
+            </Link>
+            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-all border-none cursor-pointer p-0" onClick={handleLogout} title="Logout">
+              <LogOut size={18} />
+            </button>
+          </>
+        ) : (
+          <div className="flex gap-3 items-center">
+            <Link href="/login" className="btn-secondary !m-0">Login</Link>
+            <Link href="/signup" className="btn-primary !m-0">Sign Up</Link>
+          </div>
+        )}
+      </div>
     </nav>
   )
 }

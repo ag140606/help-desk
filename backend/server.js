@@ -297,6 +297,20 @@ app.get('/admin/users', authenticateAdmin, async (req, res) => {
   }
 });
 
+app.delete('/admin/users/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await Ticket.deleteMany({ user_email: user.email });
+    res.status(200).json({ message: 'User deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to delete user' });
+  }
+});
+
+
 app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('name email');
