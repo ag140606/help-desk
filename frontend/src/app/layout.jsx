@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
             <Sidebar />
             <div className="flex-1 flex flex-col overflow-hidden relative">
               <NavWrapper />
-              <main className="flex-1 overflow-y-auto p-8 m-0 max-w-none">
+              <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8 m-0 max-w-none">
                 <div className="max-w-6xl mx-auto">
                   {children}
                 </div>
