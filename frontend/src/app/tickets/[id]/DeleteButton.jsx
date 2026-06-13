@@ -8,6 +8,8 @@ export default function DeleteButton({ id }) {
   const router = useRouter()
 
   const deleteTicket = async () => {
+    if (!window.confirm("Are you sure you want to delete this ticket?")) return;
+
     try {
       await axios.delete('/tickets/' + id)
       router.push('/tickets')

@@ -20,6 +20,14 @@ const ticketSchema = new Schema({
     type: String,
     required: true,
   },
+  replies: [
+    {
+      body: { type: String, required: true },
+      sender: { type: String, required: true }, // 'user' or 'admin'
+      sender_email: { type: String },
+      createdAt: { type: Date, default: Date.now },
+    }
+  ]
 });
 
 const Ticket = model('Ticket', ticketSchema);

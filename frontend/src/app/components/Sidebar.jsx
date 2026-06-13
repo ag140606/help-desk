@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { getAccessToken, getAuthChangeEventName } from '@/lib/auth'
-import { LayoutDashboard, Ticket, User, LogIn, UserPlus, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react'
+import { getAdminAccessToken, getAdminAuthChangeEventName } from '@/lib/adminAuth'
+import { LayoutDashboard, Ticket, User, Users, LogIn, UserPlus, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 export default function Sidebar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -16,26 +18,49 @@ export default function Sidebar() {
   useEffect(() => {
     setMounted(true)
     setIsLoggedIn(Boolean(getAccessToken()))
+    setIsAdminLoggedIn(Boolean(getAdminAccessToken()))
     
     const syncAuthState = () => setIsLoggedIn(Boolean(getAccessToken()))
     const authEvent = getAuthChangeEventName()
 
+    const syncAdminAuthState = () => setIsAdminLoggedIn(Boolean(getAdminAccessToken()))
+    const adminAuthEvent = getAdminAuthChangeEventName()
+
     window.addEventListener(authEvent, syncAuthState)
-    window.addEventListener('storage', syncAuthState)
+    window.addEventListener(adminAuthEvent, syncAdminAuthState)
+    window.addEventListener('storage', () => {
+      syncAuthState()
+      syncAdminAuthState()
+    })
 
     return () => {
       window.removeEventListener(authEvent, syncAuthState)
-      window.removeEventListener('storage', syncAuthState)
+      window.removeEventListener(adminAuthEvent, syncAdminAuthState)
+      window.removeEventListener('storage', () => {
+        syncAuthState()
+        syncAdminAuthState()
+      })
     }
   }, [])
 
-  const navItems = [
+  const isAdminRoute = pathname?.startsWith('/admin')
+
+  const userNavItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard, show: true },
     { name: 'Tickets', href: '/tickets', icon: Ticket, show: isLoggedIn },
     { name: 'Profile', href: '/profile', icon: User, show: isLoggedIn },
     { name: 'Login', href: '/login', icon: LogIn, show: !isLoggedIn },
     { name: 'Sign Up', href: '/signup', icon: UserPlus, show: !isLoggedIn },
   ]
+
+  const adminNavItems = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, show: isAdminLoggedIn },
+    { name: 'Users', href: '/admin/users', icon: Users, show: isAdminLoggedIn },
+    { name: 'Tickets', href: '/admin/tickets', icon: Ticket, show: isAdminLoggedIn },
+    { name: 'Login', href: '/admin/login', icon: LogIn, show: !isAdminLoggedIn },
+  ]
+
+  const navItems = isAdminRoute ? adminNavItems : userNavItems
 
   return (
     <aside className={`fixed bottom-0 left-0 right-0 z-50 md:relative md:bottom-auto md:left-auto md:right-auto ${isCollapsed ? 'md:w-20' : 'md:w-64'} md:h-screen bg-sidebar border-t md:border-t-0 md:border-r border-border flex flex-row md:flex-col transition-all duration-300 md:sticky md:top-0`}>

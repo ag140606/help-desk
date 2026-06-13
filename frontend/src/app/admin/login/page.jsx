@@ -48,10 +48,11 @@ export default function AdminLoginPage() {
         </label>
 
         {error && <p className="text-red-500">{error}</p>}
-
+        <center>
         <button className="btn-primary" disabled={loading}>
           {loading ? 'Logging in...' : 'Login as Admin'}
         </button>
+        </center>
       </form>
 
       <center>

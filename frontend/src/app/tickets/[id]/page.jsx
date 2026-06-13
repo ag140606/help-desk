@@ -11,6 +11,26 @@ export default function TicketDetails() {
   const [ticket, setTicket] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [replyBody, setReplyBody] = useState('')
+  const [replying, setReplying] = useState(false)
+  const [replyError, setReplyError] = useState('')
+
+  const handleReplySubmit = async (e) => {
+    e.preventDefault()
+    if (!replyBody.trim()) return
+
+    setReplying(true)
+    setReplyError('')
+    try {
+      const res = await axios.post(`/tickets/${id}/replies`, { body: replyBody })
+      setTicket(res.data)
+      setReplyBody('')
+    } catch (err) {
+      setReplyError(err.response?.data?.error || 'Unable to add reply')
+    } finally {
+      setReplying(false)
+    }
+  }
 
   useEffect(() => {
     const loadTicket = async () => {
@@ -56,7 +76,43 @@ export default function TicketDetails() {
             <p>{ticket.body}</p>
             <div className={`pill ${ticket.priority}`}>{ticket.priority} priority</div>
         </div>
-        <DeleteButton id={id} />
+
+        <div className="mt-8">
+            <h4 className="text-xl font-bold mb-4">Conversation</h4>
+            {ticket.replies && ticket.replies.length > 0 ? (
+                ticket.replies.map((reply, idx) => (
+                    <div key={idx} className={`card my-3 ${reply.sender === 'admin' ? 'border-primary border-l-4' : ''}`}>
+                        <small className="text-gray-500 block mb-2">
+                            <b>{reply.sender === 'admin' ? 'Support Team' : 'You'}</b> • {new Date(reply.createdAt).toLocaleString()}
+                        </small>
+                        <p className="m-0 whitespace-pre-wrap">{reply.body}</p>
+                    </div>
+                ))
+            ) : (
+                <p className="text-sm text-gray-500 mb-4">No replies yet. Start the conversation!</p>
+            )}
+
+            <form onSubmit={handleReplySubmit} className="mt-6">
+                <label className="block mb-2 font-semibold">Add a Reply</label>
+                <textarea
+                    required
+                    rows="4"
+                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Type your message here..."
+                    value={replyBody}
+                    onChange={(e) => setReplyBody(e.target.value)}
+                    disabled={replying}
+                ></textarea>
+                {replyError && <p className="text-red-500 mt-2">{replyError}</p>}
+                <button type="submit" className="btn-primary mt-3" disabled={replying}>
+                    {replying ? 'Sending...' : 'Send Reply'}
+                </button>
+            </form>
+        </div>
+
+        <div className="mt-8">
+            <DeleteButton id={id} />
+        </div>
     </main>
   )
 }

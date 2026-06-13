@@ -9,6 +9,7 @@ export default function TicketList() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -38,9 +39,23 @@ export default function TicketList() {
     return <p className='text-red-500'>{error}</p>
   }
 
+  const filteredTickets = tickets.filter(ticket => 
+    ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    ticket.body.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
     <>
-        {tickets.map((ticket) => (
+        <div className="mb-6">
+            <input 
+                type="text" 
+                placeholder="Search tickets..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full p-2 rounded border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+            />
+        </div>
+        {filteredTickets.map((ticket) => (
             <div key = {ticket._id} className='card my-5'>
                 <Link href={`/tickets/${ticket._id}`}>
                 <h3> {ticket.title} </h3>
@@ -50,8 +65,10 @@ export default function TicketList() {
             </div>
         ))}
         
-        {tickets.length === 0 && (
+        {tickets.length === 0 ? (
             <p className='text-center'>There are no open tickets!</p>
+        ) : filteredTickets.length === 0 && (
+            <p className='text-center'>No tickets match your search.</p>
         )}
     </>
     )

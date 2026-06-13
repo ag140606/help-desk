@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import adminAxios from '@/lib/adminAxios';
 import { getAdminAccessToken } from '@/lib/adminAuth';
-import AdminTicketCard from './AdminTicketCard';
 
 export default function AdminUserTicketsPage() {
   const { id } = useParams();
@@ -14,6 +13,7 @@ export default function AdminUserTicketsPage() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!getAdminAccessToken()) {
@@ -59,6 +59,11 @@ export default function AdminUserTicketsPage() {
     );
   }
 
+  const filteredTickets = tickets.filter(ticket => 
+    ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    ticket.body.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <main>
       <nav>
@@ -66,25 +71,34 @@ export default function AdminUserTicketsPage() {
       </nav>
       <p>{user?.email}</p>
 
-      {tickets.map((ticket) => (
-        <AdminTicketCard
-          key={ticket._id}
-          ticket={ticket}
-          onUpdated={(updatedTicket) => {
-            setTickets((current) =>
-              current.map((item) => (item._id === updatedTicket._id ? updatedTicket : item))
-            );
-          }}
-          onDeleted={(ticketId) => {
-            setTickets((current) => current.filter((item) => item._id !== ticketId));
-          }}
+      <div className="mb-6 mt-4">
+        <input 
+            type="text" 
+            placeholder="Search tickets..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 rounded border border-border bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
         />
+      </div>
+
+      {filteredTickets.map((ticket) => (
+        <div key={ticket._id} className="card my-5 relative hover:shadow-md transition-shadow">
+          <Link href={`/admin/tickets/${ticket._id}`} className="block">
+            <h3 className="mb-2">{ticket.title}</h3>
+            <div className="flex justify-between items-center mt-4">
+              <div className={`pill ${ticket.priority} m-0`}>{ticket.priority} priority</div>
+            </div>
+            <p className="mt-4 text-primary font-medium hover:underline">{ticket.body.slice(0,200)}...</p>
+          </Link>
+        </div>
       ))}
 
       <br />
 
-      {tickets.length === 0 && (
+      {tickets.length === 0 ? (
         <p className="text-center">This user has no open tickets.</p>
+      ) : filteredTickets.length === 0 && (
+        <p className="text-center">No tickets match your search.</p>
       )}
 
       <br />

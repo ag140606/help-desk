@@ -325,6 +325,27 @@ app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
   }
 });
 
+app.get('/admin/tickets', authenticateAdmin, async (req, res) => {
+  try {
+    const tickets = await Ticket.find().sort({ _id: -1 });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load tickets' });
+  }
+});
+
+app.get('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load ticket' });
+  }
+});
+
 app.put('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
@@ -368,6 +389,31 @@ app.delete('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
+app.post('/admin/tickets/:id/replies', authenticateAdmin, async (req, res) => {
+  try {
+    const { body } = req.body;
+    if (!body) {
+      return res.status(400).json({ error: 'Reply body is required' });
+    }
+    
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    ticket.replies.push({
+      body,
+      sender: 'admin',
+      sender_email: req.admin.email, // fixed to req.admin
+    });
+
+    await ticket.save();
+    res.status(201).json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to add reply' });
+  }
+});
+
 app.get('/tickets', authenticateToken, async (req, res) => {
   try {
     const all = await Ticket.find({ user_email: req.user.email });
@@ -406,6 +452,27 @@ app.delete('/tickets/:id', authenticateToken, authorizeTicketOwner, async (req, 
     res.status(200).json({ message: 'Ticket deleted' });
   } catch (error) {
     res.status(500).json({ error });
+  }
+});
+
+app.post('/tickets/:id/replies', authenticateToken, authorizeTicketOwner, async (req, res) => {
+  try {
+    const { body } = req.body;
+    if (!body) {
+      return res.status(400).json({ error: 'Reply body is required' });
+    }
+
+    const ticket = req.ticket; // set by authorizeTicketOwner
+    ticket.replies.push({
+      body,
+      sender: 'user',
+      sender_email: req.user.email,
+    });
+
+    await ticket.save();
+    res.status(201).json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to add reply' });
   }
 });
 
