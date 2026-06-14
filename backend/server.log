@@ -31,3 +31,4 @@ Connected to MongoDB
 ◇ injected env (2) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 Backend running on http://localhost:4000
 Connected to MongoDB
+[Auth] Refresh token used for user: 6a1eb7bf96db2933fb82340f

@@ -278,13 +278,27 @@ app.post('/admin/auth/logout', async (req, res) => {
 
 app.get('/admin/stats', authenticateAdmin, async (req, res) => {
   try {
-    const [userCount, ticketCount] = await Promise.all([
-      User.countDocuments(),
-      Ticket.countDocuments(),
-    ]);
+    const userCount = await User.countDocuments();
+    let ticketCountQuery = {};
+    if (req.admin.email !== 'admin@helpdesk.com') {
+      ticketCountQuery = { assignedTo: req.admin.adminId };
+    }
+    const ticketCount = await Ticket.countDocuments(ticketCountQuery);
     res.json({ userCount, ticketCount });
   } catch (error) {
     res.status(500).json({ error: 'Unable to load stats' });
+  }
+});
+
+app.get('/admin/list-admins', authenticateAdmin, async (req, res) => {
+  try {
+    if (req.admin.email !== 'admin@helpdesk.com') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const admins = await Admin.find({}, 'name email _id');
+    res.json(admins);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to fetch admins' });
   }
 });
 
@@ -318,7 +332,12 @@ app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const tickets = await Ticket.find({ user_email: user.email }).sort({ _id: -1 });
+    let ticketQuery = { user_email: user.email };
+    if (req.admin.email !== 'admin@helpdesk.com') {
+      ticketQuery.assignedTo = req.admin.adminId;
+    }
+
+    const tickets = await Ticket.find(ticketQuery).sort({ _id: -1 });
     res.json({ user, tickets });
   } catch (error) {
     res.status(500).json({ error: 'Unable to load user tickets' });
@@ -327,7 +346,11 @@ app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
 
 app.get('/admin/tickets', authenticateAdmin, async (req, res) => {
   try {
-    const tickets = await Ticket.find().sort({ _id: -1 });
+    let query = {};
+    if (req.admin.email !== 'admin@helpdesk.com') {
+      query = { assignedTo: req.admin.adminId };
+    }
+    const tickets = await Ticket.find(query).sort({ _id: -1 });
     res.json(tickets);
   } catch (error) {
     res.status(500).json({ error: 'Unable to load tickets' });
@@ -336,9 +359,12 @@ app.get('/admin/tickets', authenticateAdmin, async (req, res) => {
 
 app.get('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const ticket = await Ticket.findById(req.params.id).populate('assignedTo', 'name email');
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found' });
+    }
+    if (req.admin.email !== 'admin@helpdesk.com' && ticket.assignedTo?._id?.toString() !== req.admin.adminId) {
+      return res.status(403).json({ error: 'Not authorized to view this ticket' });
     }
     res.json(ticket);
   } catch (error) {
@@ -386,6 +412,57 @@ app.delete('/admin/tickets/:id', authenticateAdmin, async (req, res) => {
     res.status(200).json({ message: 'Ticket deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Unable to delete ticket' });
+  }
+});
+
+app.patch('/admin/tickets/:id/status', authenticateAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status provided.' });
+    }
+
+    const ticket = await Ticket.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to update ticket status' });
+  }
+});
+
+app.patch('/admin/tickets/:id/assign', authenticateAdmin, async (req, res) => {
+  try {
+    if (req.admin.email !== 'admin@helpdesk.com') {
+      return res.status(403).json({ error: 'Only super admin can assign tickets' });
+    }
+
+    const { adminId } = req.body;
+    
+    // Allow assigning to null (unassigned)
+    const newAssignment = adminId ? adminId : null;
+
+    const ticket = await Ticket.findByIdAndUpdate(
+      req.params.id,
+      { assignedTo: newAssignment },
+      { new: true }
+    ).populate('assignedTo', 'name email');
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to assign admin' });
   }
 });
 

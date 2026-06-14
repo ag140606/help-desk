@@ -70,9 +70,23 @@ export default function TicketDetails() {
         <nav>
             <h2>Ticket Details</h2>
         </nav>
-        <div className='card'>
+        <div className='card relative'>
+            <div className="absolute top-4 right-4 flex flex-col items-end">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize 
+                ${ticket.status === 'open' ? 'bg-blue-100 text-blue-800' : ''}
+                ${ticket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' : ''}
+                ${ticket.status === 'resolved' ? 'bg-green-100 text-green-800' : ''}
+                ${ticket.status === 'closed' ? 'bg-gray-200 text-gray-800' : ''}
+                `}>
+                {ticket.status ? ticket.status.replace('_', ' ') : 'Open'}
+                </span>
+            </div>
+            
             <h3>{ticket.title}</h3>
-            <small><b>Created by: </b>{ticket.user_email}</small>
+            <small className="block mb-1"><b>Created by: </b>{ticket.user_email}</small>
+            <small className="block text-gray-500 mb-4">
+              <b>Assigned To: </b> {ticket.assignedTo ? 'Support Team' : 'Unassigned'}
+            </small>
             <p>{ticket.body}</p>
             <div className={`pill ${ticket.priority}`}>{ticket.priority} priority</div>
         </div>

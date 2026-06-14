@@ -20,6 +20,16 @@ const ticketSchema = new Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    enum: ['open', 'in_progress', 'resolved', 'closed'],
+    default: 'open',
+  },
+  assignedTo: {
+    type: Schema.Types.ObjectId,
+    ref: 'Admin',
+    default: null,
+  },
   replies: [
     {
       body: { type: String, required: true },
