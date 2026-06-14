@@ -324,7 +324,7 @@ app.delete('/admin/users/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
-
+// To get tickets of each admin
 app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('name email');
@@ -344,6 +344,7 @@ app.get('/admin/users/:id/tickets', authenticateAdmin, async (req, res) => {
   }
 });
 
+// All tickets are visible to super admin
 app.get('/admin/tickets', authenticateAdmin, async (req, res) => {
   try {
     let query = {};
@@ -481,7 +482,7 @@ app.post('/admin/tickets/:id/replies', authenticateAdmin, async (req, res) => {
     ticket.replies.push({
       body,
       sender: 'admin',
-      sender_email: req.admin.email, // fixed to req.admin
+      sender_email: req.admin.email, 
     });
 
     await ticket.save();
